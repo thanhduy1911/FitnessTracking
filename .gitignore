@@ -1,0 +1,244 @@
+# VietFit Project .gitignore
+
+# ===== ENVIRONMENT & SECRETS =====
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.staging.local
+*.env
+appsettings.Production.json
+appsettings.Staging.json
+secrets.json
+*.secrets
+
+# ===== .NET CORE =====
+## Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## Visual Studio files
+.vs/
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.vcxproj.filters
+*.vcxproj.user
+
+## Build results
+*.pidb
+*.svclog
+*.scc
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+## .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## Entity Framework
+*.edmx.diagram
+*.edmx.sql
+
+# ===== NODE.JS / NEXTJS =====
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+## Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+## Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+## Dependency directories
+jspm_packages/
+
+## Optional npm cache directory
+.npm
+
+## Optional eslint cache
+.eslintcache
+
+## Next.js build output
+.next/
+out/
+
+## Nuxt.js build / generate output
+.nuxt
+dist
+
+## Production build
+build/
+dist/
+
+# ===== DATABASES =====
+*.db
+*.sqlite
+*.sqlite3
+*.mdb
+*.ldb
+
+## PostgreSQL
+*.backup
+*.dump
+
+# ===== DOCKER =====
+.dockerignore
+docker-compose.override.yml
+Dockerfile.development
+
+# ===== LOGS =====
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ===== UPLOADS & MEDIA =====
+uploads/
+media/
+temp/
+*.tmp
+*.temp
+
+# ===== IDE / EDITOR =====
+## Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+## JetBrains IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+
+## Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ===== OS GENERATED =====
+## macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+## Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+## Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ===== TESTING =====
+coverage/
+*.cover
+.nyc_output
+.coverage
+htmlcov/
+.pytest_cache/
+.cache
+
+# ===== CERTIFICATES & KEYS =====
+*.pfx
+*.p12
+*.key
+*.pem
+*.crt
+*.cer
+*.der
+
+# ===== ANALYTICS & MONITORING =====
+.sonarqube/
+.scannerwork/
+
+# ===== PACKAGE MANAGERS =====
+## Yarn
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+## NPM
+package-lock.json
+yarn.lock
+
+# ===== MISC =====
+*.swp
+*.swo
+*~
+.project
+.classpath
+.factorypath
+.loadpath
+.externalToolBuilders/
+.cproject
+.autotools
+.settings/
+
+# ===== PROJECT SPECIFIC =====
+## Local development overrides
+docker-compose.local.yml
+appsettings.Local.json
+
+## Generated documentation
+docs/api/
+docs/generated/
+
+## Backup files
+*.bak
+*.backup
+*.old
+
+# ===== KEEP THESE FILES =====
+!.gitkeep
+#!docs/daily-logs/.gitkeep
+!backend/services/*/.gitkeep
+!frontend/.gitkeep 

@@ -1,0 +1,183 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./backend/gateway
+      dockerfile: Dockerfile
+    ports:
+      - "5000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=VietFitGateway;Username=vietfit;Password=vietfit123
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - vietfit-network
+
+  # User Service
+  user-service:
+    build:
+      context: ./backend/services/user-service
+      dockerfile: Dockerfile
+    ports:
+      - "5001:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=VietFitUsers;Username=vietfit;Password=vietfit123
+      - Redis__ConnectionString=redis:6379
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - vietfit-network
+
+  # Food Service
+  food-service:
+    build:
+      context: ./backend/services/food-service
+      dockerfile: Dockerfile
+    ports:
+      - "5002:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=VietFitFood;Username=vietfit;Password=vietfit123
+      - Redis__ConnectionString=redis:6379
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - vietfit-network
+
+  # Exercise Service
+  exercise-service:
+    build:
+      context: ./backend/services/exercise-service
+      dockerfile: Dockerfile
+    ports:
+      - "5003:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=VietFitExercise;Username=vietfit;Password=vietfit123
+      - Redis__ConnectionString=redis:6379
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - vietfit-network
+
+  # Analytics Service
+  analytics-service:
+    build:
+      context: ./backend/services/analytics-service
+      dockerfile: Dockerfile
+    ports:
+      - "5004:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=VietFitAnalytics;Username=vietfit;Password=vietfit123
+      - Redis__ConnectionString=redis:6379
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - vietfit-network
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:5000
+      - NEXT_PUBLIC_APP_ENV=development
+    depends_on:
+      - api-gateway
+    networks:
+      - vietfit-network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=vietfit
+      - POSTGRES_PASSWORD=vietfit123
+      - POSTGRES_DB=VietFitMain
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    networks:
+      - vietfit-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - vietfit-network
+
+  # pgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    ports:
+      - "8080:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@vietfit.com
+      - PGADMIN_DEFAULT_PASSWORD=admin123
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - vietfit-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  pgadmin_data:
+
+networks:
+  vietfit-network:
+    driver: bridge
+
+# Development-only services
+---
+# docker-compose.dev.yml - extends main compose for development
+version: '3.8'
+services:
+  # Hot reload for backend services
+  user-service:
+    volumes:
+      - ./backend/services/user-service:/app
+      - /app/bin
+      - /app/obj
+    
+  food-service:
+    volumes:
+      - ./backend/services/food-service:/app
+      - /app/bin
+      - /app/obj
+
+  exercise-service:
+    volumes:
+      - ./backend/services/exercise-service:/app
+      - /app/bin
+      - /app/obj
+
+  analytics-service:
+    volumes:
+      - ./backend/services/analytics-service:/app
+      - /app/bin
+      - /app/obj 
