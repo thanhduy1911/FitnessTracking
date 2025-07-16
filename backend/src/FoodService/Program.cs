@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using FoodService.Data;
 using FoodService.Services;
+using FoodService.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,9 @@ builder.Services.AddControllers();
 // Add Entity Framework
 builder.Services.AddDbContext<FoodDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Add AutoMapper with all mapping profiles
+builder.Services.AddAutoMapperWithConfiguration();
 
 // Add application services
 builder.Services.AddScoped<FoodSeedService>();
