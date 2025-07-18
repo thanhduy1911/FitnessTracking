@@ -34,13 +34,13 @@ public class NutritionMappingProfile : Profile
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.Food, opt => opt.Ignore())
-            // Map các fields không có trong DTO với null
-            .ForMember(dest => dest.CopperMg, opt => opt.MapFrom(src => (decimal?)null))
-            .ForMember(dest => dest.ManganeseMg, opt => opt.MapFrom(src => (decimal?)null))
-            .ForMember(dest => dest.SeleniumMcg, opt => opt.MapFrom(src => (decimal?)null))
-            .ForMember(dest => dest.BiotinMcg, opt => opt.MapFrom(src => (decimal?)null))
-            .ForMember(dest => dest.PantothenicAcidMg, opt => opt.MapFrom(src => (decimal?)null))
-            .ForMember(dest => dest.CholineMg, opt => opt.MapFrom(src => (decimal?)null));
+            // Map các fields mới từ DTOs (not null anymore)
+            .ForMember(dest => dest.CopperMg, opt => opt.MapFrom(src => src.CopperMg))
+            .ForMember(dest => dest.ManganeseMg, opt => opt.MapFrom(src => src.ManganeseMg))
+            .ForMember(dest => dest.SeleniumMcg, opt => opt.MapFrom(src => src.SeleniumMcg))
+            .ForMember(dest => dest.BiotinMcg, opt => opt.MapFrom(src => src.BiotinMcg))
+            .ForMember(dest => dest.PantothenicAcidMg, opt => opt.MapFrom(src => src.PantothenicAcidMg))
+            .ForMember(dest => dest.CholineMg, opt => opt.MapFrom(src => src.CholineMg));
 
         CreateMap<UpdateNutritionFactsDto, NutritionFacts>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
@@ -57,12 +57,13 @@ public class NutritionMappingProfile : Profile
             .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
             .ForMember(dest => dest.Food, opt => opt.Ignore())
             .ForMember(dest => dest.ServingSizeG, opt => opt.Ignore())
-            .ForMember(dest => dest.CopperMg, opt => opt.Ignore())
-            .ForMember(dest => dest.ManganeseMg, opt => opt.Ignore())
-            .ForMember(dest => dest.SeleniumMcg, opt => opt.Ignore())
-            .ForMember(dest => dest.BiotinMcg, opt => opt.Ignore())
-            .ForMember(dest => dest.PantothenicAcidMg, opt => opt.Ignore())
-            .ForMember(dest => dest.CholineMg, opt => opt.Ignore())
+            // Map các fields mới từ DTOs (not ignore anymore)
+            .ForMember(dest => dest.CopperMg, opt => opt.MapFrom(src => src.CopperMg))
+            .ForMember(dest => dest.ManganeseMg, opt => opt.MapFrom(src => src.ManganeseMg))
+            .ForMember(dest => dest.SeleniumMcg, opt => opt.MapFrom(src => src.SeleniumMcg))
+            .ForMember(dest => dest.BiotinMcg, opt => opt.MapFrom(src => src.BiotinMcg))
+            .ForMember(dest => dest.PantothenicAcidMg, opt => opt.MapFrom(src => src.PantothenicAcidMg))
+            .ForMember(dest => dest.CholineMg, opt => opt.MapFrom(src => src.CholineMg))
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
     }
 } 

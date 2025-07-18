@@ -4,6 +4,12 @@ namespace FoodService.DTOs.Nutrition;
 
 /// <summary>
 /// DTO for updating nutrition facts
+/// Mục đích: Partial updates cho existing records
+/// Đặc điểm:
+/// - Tất cả fields đều nullable (optional)
+/// - Validation rules để prevent invalid updates
+/// - Không có Required fields
+/// - ForAllMembers condition để ignore null values
 /// </summary>
 public class UpdateNutritionFactsDto
 {
@@ -97,6 +103,25 @@ public class UpdateNutritionFactsDto
     
     [Range(0, 10000, ErrorMessage = "Folate phải từ 0 đến 10000mcg")]
     public decimal? FolateMcg { get; set; }
+    
+    // Additional essential nutrients (matching Entity)
+    [Range(0, 1000, ErrorMessage = "Biotin phải từ 0 đến 1000mcg")]
+    public decimal? BiotinMcg { get; set; }
+    
+    [Range(0, 1000, ErrorMessage = "Choline phải từ 0 đến 1000mg")]
+    public decimal? CholineMg { get; set; }
+    
+    [Range(0, 100, ErrorMessage = "Copper phải từ 0 đến 100mg")]
+    public decimal? CopperMg { get; set; }
+    
+    [Range(0, 100, ErrorMessage = "Manganese phải từ 0 đến 100mg")]
+    public decimal? ManganeseMg { get; set; }
+    
+    [Range(0, 1000, ErrorMessage = "Selenium phải từ 0 đến 1000mcg")]
+    public decimal? SeleniumMcg { get; set; }
+    
+    [Range(0, 100, ErrorMessage = "Pantothenic acid phải từ 0 đến 100mg")]
+    public decimal? PantothenicAcidMg { get; set; }
     
     // Data quality indicators
     [StringLength(20, ErrorMessage = "Data quality không được vượt quá 20 ký tự")]

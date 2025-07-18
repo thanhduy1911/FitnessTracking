@@ -2,6 +2,12 @@ namespace FoodService.DTOs.Nutrition;
 
 /// <summary>
 /// Complete nutrition facts DTO
+/// Mục đích: API Response cho mobile app
+/// Đặc điểm: 
+/// - Complete nutrition data
+/// - No validation rules (đã được validate khi create)
+/// - Optimized for JSON serialization
+/// - Includes calculated fields (DataQuality)
 /// </summary>
 public class NutritionFactsDto
 {
@@ -44,6 +50,14 @@ public class NutritionFactsDto
     public decimal? VitaminEMg { get; set; }
     public decimal? VitaminKMcg { get; set; }
     public decimal? FolateMcg { get; set; }
+    
+    // Additional essential nutrients (matching Entity)
+    public decimal? BiotinMcg { get; set; }
+    public decimal? CholineMg { get; set; }
+    public decimal? CopperMg { get; set; }
+    public decimal? ManganeseMg { get; set; }
+    public decimal? SeleniumMcg { get; set; }
+    public decimal? PantothenicAcidMg { get; set; }
     
     // Data quality indicators
     public string DataQuality { get; set; } = "medium";

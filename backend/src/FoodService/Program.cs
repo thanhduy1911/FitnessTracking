@@ -19,6 +19,10 @@ builder.Services.AddAutoMapperWithConfiguration();
 builder.Services.AddScoped<FoodSeedService>();
 builder.Services.AddScoped<ServingSizeService>();
 
+// Add business services
+builder.Services.AddScoped<FoodService.Services.Interfaces.IFoodService, FoodService.Services.Implementations.FoodService>();
+builder.Services.AddScoped<FoodService.Services.Interfaces.INutritionCalculationService, FoodService.Services.Implementations.NutritionCalculationService>();
+
 // Add API documentation
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
