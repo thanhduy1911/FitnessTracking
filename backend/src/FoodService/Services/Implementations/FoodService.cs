@@ -92,11 +92,11 @@ public class FoodService : IFoodService
         {
             var searchTerm = request.Query.ToLower();
             query = query.Where(f => 
-                f.Name.ToLower().Contains(searchTerm) ||
-                f.NameEn.ToLower().Contains(searchTerm) ||
-                f.NameVi.ToLower().Contains(searchTerm) ||
-                f.Description.ToLower().Contains(searchTerm) ||
-                f.Barcode.Contains(searchTerm));
+                f.Description != null && f.NameVi != null && f.NameEn != null && f.Barcode != null && (f.Name.ToLower().Contains(searchTerm) ||
+                    f.NameEn.ToLower().Contains(searchTerm) ||
+                    f.NameVi.ToLower().Contains(searchTerm) ||
+                    f.Description.ToLower().Contains(searchTerm) ||
+                    f.Barcode.Contains(searchTerm)));
         }
 
         // Apply category filter
@@ -186,7 +186,7 @@ public class FoodService : IFoodService
         }
 
         // Add allergen relationships
-        if (dto.AllergenIds?.Any() == true)
+        if (dto.AllergenIds.Count != 0 == true)
         {
             var foodAllergens = dto.AllergenIds.Select(allergenId => new FoodAllergen
             {

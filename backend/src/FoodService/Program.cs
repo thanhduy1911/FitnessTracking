@@ -37,7 +37,14 @@ if (app.Environment.IsDevelopment())
 }
 
 // Initialize database
-await DbInitializer.InitDbAsync(app);
+try
+{
+    await DbInitializer.InitDbAsync(app);
+}
+catch (Exception e)
+{
+    Console.WriteLine(e);
+}
 
 // app.UseHttpsRedirection();
 

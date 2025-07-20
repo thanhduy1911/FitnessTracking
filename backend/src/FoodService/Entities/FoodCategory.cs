@@ -17,14 +17,15 @@ public class FoodCategory
 
     [Column("name_en")]
     [StringLength(255)]
-    public string NameEn { get; set; }
+    public string? NameEn { get; set; }
 
     [Column("name_vi")]
     [StringLength(255)]
-    public string NameVi { get; set; }
+    public string? NameVi { get; set; }
 
     [Column("description")]
-    public string Description { get; set; }
+    [StringLength(1000)]
+    public string? Description { get; set; }
 
     [Column("parent_id")]
     public Guid? ParentId { get; set; }
@@ -43,7 +44,7 @@ public class FoodCategory
 
     // Navigation properties
     [ForeignKey("ParentId")]
-    public virtual FoodCategory Parent { get; set; }
+    public virtual FoodCategory? Parent { get; set; }
 
     public virtual ICollection<FoodCategory> Children { get; set; } = new List<FoodCategory>();
 

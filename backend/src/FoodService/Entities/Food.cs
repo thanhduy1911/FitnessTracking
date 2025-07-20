@@ -17,14 +17,14 @@ public class Food
 
     [Column("name_en")]
     [StringLength(255)]
-    public string NameEn { get; set; }
+    public string? NameEn { get; set; }
 
     [Column("name_vi")]
     [StringLength(255)]
-    public string NameVi { get; set; }
+    public string? NameVi { get; set; }
 
     [Column("description")]
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
     [Column("food_code")]
     [StringLength(100)]
@@ -32,7 +32,7 @@ public class Food
 
     [Column("barcode")]
     [StringLength(50)]
-    public string Barcode { get; set; }
+    public string? Barcode { get; set; }
 
     [Column("category_id")]
     public Guid? CategoryId { get; set; }
@@ -45,18 +45,18 @@ public class Food
 
     [Column("external_id")]
     [StringLength(100)]
-    public string ExternalId { get; set; }
+    public string? ExternalId { get; set; }
 
     [Column("source_url")]
-    public string SourceUrl { get; set; }
+    public string? SourceUrl { get; set; }
 
     // Serving size information
     public decimal? ServingSizeGrams { get; set; }  // Standard serving size in grams
-    public string ServingSizeDescription { get; set; }  // "1 bát", "1 quả", "1 ly"
-    public string ServingSizeDescriptionEn { get; set; }  // "1 bowl", "1 piece", "1 cup"
+    public string? ServingSizeDescription { get; set; }  // "1 bát", "1 quả", "1 ly"
+    public string? ServingSizeDescriptionEn { get; set; }  // "1 bowl", "1 piece", "1 cup"
     
     // Alternative serving sizes (JSON string)
-    public string AlternativeServingSizes { get; set; }  // JSON: [{"size": 150, "description": "1 bát nhỏ"}, {"size": 250, "description": "1 bát lớn"}]
+    public string? AlternativeServingSizes { get; set; }  // JSON: [{"size": 150, "description": "1 bát nhỏ"}, {"size": 250, "description": "1 bát lớn"}]
 
     // Status and verification
     [Column("is_verified")]
@@ -87,9 +87,9 @@ public class Food
 
     // Navigation properties
     [ForeignKey("CategoryId")]
-    public virtual FoodCategory Category { get; set; }
+    public virtual FoodCategory? Category { get; set; }
 
-    public virtual NutritionFacts NutritionFacts { get; set; }
+    public virtual NutritionFacts? NutritionFacts { get; set; }
 
     public virtual ICollection<FoodAllergen> FoodAllergens { get; set; } = new List<FoodAllergen>();
 
