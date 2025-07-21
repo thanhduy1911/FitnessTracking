@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace FoodService.Controllers;
 
 [ApiController]
-[Route("api/foods")]
+[Route("api/v1/foods")]
 public class FoodController(FoodDbContext dbContext, IMapper mapper) : ControllerBase
 {
     [HttpGet]
@@ -39,16 +39,80 @@ public class FoodController(FoodDbContext dbContext, IMapper mapper) : Controlle
     [HttpPost]
     public async Task<ActionResult<FoodDetailsDto>> CreateFood([FromBody] CreateFoodDto foodDto)
     {
-        var food = mapper.Map<Food>(foodDto);
-        dbContext.Foods.Add(food);
-        
-        var newFood = mapper.Map<CreateFoodDto>(food);
-        if (newFood == null) return NotFound();
-        
-        var result = await dbContext.SaveChangesAsync() > 0;
-        if (!result) return BadRequest("Could not save changes to the database");
-        
-        return CreatedAtAction(nameof(GetFoodById), 
-            new { id = food.Id }, mapper.Map<FoodDetailsDto>(food));
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState
+                    .SelectMany(x =>
+                    {
+                        if (x.Value != null) return x.Value.Errors;
+                        throw new InvalidOperationException();
+                    })
+                    .Select(x => x.ErrorMessage)
+                    .ToList();
+    
+                return BadRequest(new
+                {
+                    Message = "Error creating food",
+                    Errors = errors
+                });
+            }
+            
+            // Map DTO to entity
+            var food = mapper.Map<Food>(foodDto);
+            food.Id = Guid.NewGuid();
+            food.CreatedAt = DateTime.UtcNow;
+            food.UpdatedAt = DateTime.UtcNow;
+            food.IsActive = true;
+            food.VerificationStatus = "pending";
+            
+            dbContext.Foods.Add(food);
+    
+            if (foodDto.NutritionFacts != null)
+            {
+                var nutritionFacts = mapper.Map<NutritionFacts>(foodDto.NutritionFacts);
+                nutritionFacts.Id = Guid.NewGuid();
+                nutritionFacts.FoodId = food.Id;
+                nutritionFacts.CreatedAt = DateTime.UtcNow;
+                nutritionFacts.UpdatedAt = DateTime.UtcNow;
+    
+                dbContext.NutritionFacts.Add(nutritionFacts);
+            }
+            
+            if (foodDto.AllergenIds?.Any() == true)
+            {
+                var foodAllergens = foodDto.AllergenIds.Select(allergenId => new FoodAllergen
+                {
+                    Id = Guid.NewGuid(),
+                    FoodId = food.Id,
+                    AllergenId = allergenId,
+                    CreatedAt = DateTime.UtcNow
+                }).ToList();
+    
+                dbContext.FoodAllergens.AddRange(foodAllergens);
+            }
+            
+            var result = await dbContext.SaveChangesAsync();
+            if (result == 0)
+            {
+                return BadRequest(new { Message = "Cannot save food to database" });
+            }
+            
+            var createdFood = await dbContext.Foods
+                .Include(x => x.Category)
+                .Include(x => x.NutritionFacts)
+                .Include(x => x.FoodAllergens)
+                .ThenInclude(fa => fa.Allergen)
+                .FirstOrDefaultAsync(x => x.Id == food.Id);
+            
+            return CreatedAtAction(nameof(GetFoodById),
+                new { id = food.Id },
+                mapper.Map<FoodDetailsDto>(createdFood));
+        }
+        catch (Exception e)
+        {
+            return StatusCode(500, new { Message = "There is some errors when creating food!" });
+        }
     }
 }
