@@ -5,7 +5,7 @@ namespace FoodService.ResponseHelpers.Common;
 /// </summary>
 public class PaginatedResponse<T>
 {
-    public List<T> Data { get; set; } = new();
+    public List<T> Data { get; set; } = [];
     public int TotalCount { get; set; }
     public int PageNumber { get; set; }
     public int PageSize { get; set; }
