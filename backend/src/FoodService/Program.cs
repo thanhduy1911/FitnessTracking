@@ -1,7 +1,9 @@
-using Microsoft.EntityFrameworkCore;
 using FoodService.Data;
-using FoodService.Services;
 using FoodService.Extensions;
+using FoodService.Services;
+using FoodService.Services.Implementations;
+using FoodService.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,8 +22,9 @@ builder.Services.AddScoped<FoodSeedService>();
 builder.Services.AddScoped<ServingSizeService>();
 
 // Add business services
-builder.Services.AddScoped<FoodService.Services.Interfaces.IFoodService, FoodService.Services.Implementations.FoodService>();
-builder.Services.AddScoped<FoodService.Services.Interfaces.INutritionCalculationService, FoodService.Services.Implementations.NutritionCalculationService>();
+builder.Services.AddScoped<IFoodService, FoodService.Services.Implementations.FoodService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<INutritionCalculationService, NutritionCalculationService>();
 
 // Add API documentation
 builder.Services.AddEndpointsApiExplorer();

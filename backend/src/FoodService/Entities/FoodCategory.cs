@@ -36,6 +36,10 @@ public class FoodCategory
     [Column("is_active")]
     public bool IsActive { get; set; } = true;
 
+    [Column("color_hex")]
+    [StringLength(20)]
+    public string? ColorHex { get; set; }
+
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

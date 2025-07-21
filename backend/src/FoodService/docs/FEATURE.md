@@ -461,3 +461,23 @@ VietFit FoodService is a well-architected, Vietnamese-focused nutrition service 
 
 **Timeline Estimate**: 1-2 weeks to complete Phase 3 (Controllers implementation)
 **Current Priority**: API controllers implementation 
+
+## [2025-07-21] - Category API & ColorHex Fix
+
+### ✅ Đã hoàn thành:
+- CRUD controller cho category (GET/POST/PUT/DELETE, phân trang)
+- Service layer chuẩn, mapping AutoMapper đầy đủ
+- Fix property ColorHex: thêm vào entity, mapping, test API thành công
+- Đã giải thích business value của ColorHex (UX/UI, chart, branding...)
+- Đã hướng dẫn migration thêm cột color_hex
+- Đã test thực tế với Postman, dữ liệu trả về đúng
+
+### Hướng dẫn migration:
+1. Thêm property ColorHex vào entity FoodCategory
+2. Sửa mapping profile cho ColorHex
+3. Chạy:
+   - dotnet ef migrations add AddColorHexToFoodCategory
+   - dotnet ef database update
+
+### Business note:
+- ColorHex giúp UX/UI đẹp hơn, phân biệt nhóm thực phẩm, hỗ trợ biểu đồ, cá nhân hóa. 

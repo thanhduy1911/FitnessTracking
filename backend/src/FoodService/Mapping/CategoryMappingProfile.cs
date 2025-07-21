@@ -11,15 +11,16 @@ public class CategoryMappingProfile : Profile
         // FoodCategory Entity to DTOs
         CreateMap<FoodCategory, CategoryDto>()
             .ForMember(dest => dest.IconUrl, opt => opt.MapFrom(src => (string?)null))
-            .ForMember(dest => dest.ColorHex, opt => opt.MapFrom(src => (string?)null))
+            .ForMember(dest => dest.ColorHex, opt => opt.MapFrom(src => src.ColorHex))
             .ForMember(dest => dest.FoodCount, opt => opt.MapFrom(src => src.Foods.Count))
             .ForMember(dest => dest.TotalFoodCount, opt => opt.MapFrom(src => 
-                src.Foods.Count + src.Children.Sum(c => c.Foods.Count)));
+                src.Foods.Count + src.Children.Sum(c => c.Foods.Count)))
+            .ForMember(dest => dest.Parent, opt => opt.MapFrom(src => (CategoryDto?)null));
 
         CreateMap<FoodCategory, CategoryListDto>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameVi))
             .ForMember(dest => dest.IconUrl, opt => opt.MapFrom(src => (string?)null))
-            .ForMember(dest => dest.ColorHex, opt => opt.MapFrom(src => (string?)null))
+            .ForMember(dest => dest.ColorHex, opt => opt.MapFrom(src => src.ColorHex))
             .ForMember(dest => dest.FoodCount, opt => opt.MapFrom(src => src.Foods.Count));
 
         // DTOs to FoodCategory Entity
@@ -29,7 +30,8 @@ public class CategoryMappingProfile : Profile
             .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.Parent, opt => opt.Ignore())
             .ForMember(dest => dest.Children, opt => opt.Ignore())
-            .ForMember(dest => dest.Foods, opt => opt.Ignore());
+            .ForMember(dest => dest.Foods, opt => opt.Ignore())
+            .ForMember(dest => dest.ColorHex, opt => opt.MapFrom(src => src.ColorHex));
 
         CreateMap<UpdateCategoryDto, FoodCategory>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
@@ -38,6 +40,7 @@ public class CategoryMappingProfile : Profile
             .ForMember(dest => dest.Parent, opt => opt.Ignore())
             .ForMember(dest => dest.Children, opt => opt.Ignore())
             .ForMember(dest => dest.Foods, opt => opt.Ignore())
+            .ForMember(dest => dest.ColorHex, opt => opt.MapFrom(src => src.ColorHex))
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
     }
 } 

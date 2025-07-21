@@ -576,3 +576,11 @@ CreateMap<UpdateNutritionFactsDto, NutritionFacts>()
 **Last Updated**: 2025-01-18
 **Next Review**: 2025-01-25
 **Assigned Team**: VietFit Development Team 
+
+## [2025-07-21] - Category API & ColorHex
+- [x] Thêm property ColorHex vào entity FoodCategory
+- [x] Sửa mapping profile cho ColorHex
+- [x] Viết CRUD controller cho category (GET/POST/PUT/DELETE)
+- [x] Test API thực tế với ColorHex
+- [x] Hướng dẫn migration thêm cột color_hex
+- [x] Giải thích business value của ColorHex 

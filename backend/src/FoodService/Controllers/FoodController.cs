@@ -1,118 +1,113 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
-using FoodService.Data;
+using FoodService.DTOs.Common;
 using FoodService.DTOs.Food;
-using FoodService.Entities;
+using FoodService.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace FoodService.Controllers;
 
 [ApiController]
 [Route("api/v1/foods")]
-public class FoodController(FoodDbContext dbContext, IMapper mapper) : ControllerBase
+public class FoodController(IFoodService foodService, ILogger<FoodController> logger) : ControllerBase
 {
+    /// <summary>
+    /// Get all foods with pagination
+    /// </summary>
     [HttpGet]
-    public async Task<ActionResult<List<FoodListDto>>> GetAllFoods(string? date)
+    public async Task<ActionResult<ApiResponse<PaginatedResponse<FoodListDto>>>> GetFoods([FromQuery] PaginationRequest request)
     {
-        var query = dbContext.Foods.OrderBy(x => x.Name).AsQueryable();
-        if (!string.IsNullOrEmpty(date))
+        try
         {
-            query = query.Where(x => x.UpdatedAt.CompareTo(DateTime.Parse(date).ToUniversalTime()) > 0);
+            var result = await foodService.GetFoodsAsync(request);
+            return Ok(ApiResponse<PaginatedResponse<FoodListDto>>.SuccessResponse(result));
         }
-
-        return await query.ProjectTo<FoodListDto>(mapper.ConfigurationProvider).ToListAsync();
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Caused exception while getting foods");
+            return StatusCode(500, ApiResponse<PaginatedResponse<FoodListDto>>.ErrorResponse("System Error"));
+        }
     }
 
-    [HttpGet("{id:guid}")]
-    public async Task<ActionResult<FoodDetailsDto>> GetFoodById(Guid id)
+    /// <summary>
+    /// Enhance searching food with details (with name, category, calories, v.v...)
+    /// </summary>
+    [HttpGet("search")]
+    public async Task<ActionResult<ApiResponse<PaginatedResponse<FoodListDto>>>> SearchFoods([FromQuery] FoodSearchRequest request)
     {
-        var food = await dbContext.Foods
-            .Include(x => x.FoodAllergens)
-            .Include(x => x.NutritionFacts)
-            .FirstOrDefaultAsync(x => x.Id == id);
-        if (food == null) return NotFound();
-        
-        return mapper.Map<FoodDetailsDto>(food);
+        try
+        {
+            var result = await foodService.SearchFoodsAsync(request);
+            return Ok(ApiResponse<PaginatedResponse<FoodListDto>>.SuccessResponse(result));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error while searching foods");
+            return StatusCode(500, ApiResponse<PaginatedResponse<FoodListDto>>.ErrorResponse("System Error"));
+        }
     }
 
+    /// <summary>
+    /// Get food details with ID
+    /// </summary>
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<FoodDetailsDto>>> GetFoodById(Guid id)
+    {
+        try
+        {
+            var food = await foodService.GetFoodByIdAsync(id);
+            if (food == null)
+                return NotFound(ApiResponse<FoodDetailsDto>.ErrorResponse("Cannot found food"));
+            return Ok(ApiResponse<FoodDetailsDto>.SuccessResponse(food));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error while getting foods details with ID: {Id}", id);
+            return StatusCode(500, ApiResponse<FoodDetailsDto>.ErrorResponse("System Error"));
+        }
+    }
+
+    /// <summary>
+    /// Create new food
+    /// </summary>
     [HttpPost]
-    public async Task<ActionResult<FoodDetailsDto>> CreateFood([FromBody] CreateFoodDto foodDto)
+    public async Task<ActionResult<ApiResponse<FoodDetailsDto>>> CreateFood([FromBody] CreateFoodDto foodDto)
     {
         try
         {
             if (!ModelState.IsValid)
             {
                 var errors = ModelState
-                    .SelectMany(x =>
-                    {
-                        if (x.Value != null) return x.Value.Errors;
-                        throw new InvalidOperationException();
-                    })
-                    .Select(x => x.ErrorMessage)
-                    .ToList();
-    
-                return BadRequest(new
-                {
-                    Message = "Error creating food",
-                    Errors = errors
-                });
+                    .Where(x => x.Value is { Errors.Count: > 0 })
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value?.Errors.Select(e => e.ErrorMessage).ToList()
+                    );
+                return BadRequest(ApiResponse<FoodDetailsDto>.ValidationErrorResponse(errors));
             }
-            
-            // Map DTO to entity
-            var food = mapper.Map<Food>(foodDto);
-            food.Id = Guid.NewGuid();
-            food.CreatedAt = DateTime.UtcNow;
-            food.UpdatedAt = DateTime.UtcNow;
-            food.IsActive = true;
-            food.VerificationStatus = "pending";
-            
-            dbContext.Foods.Add(food);
-    
-            if (foodDto.NutritionFacts != null)
-            {
-                var nutritionFacts = mapper.Map<NutritionFacts>(foodDto.NutritionFacts);
-                nutritionFacts.Id = Guid.NewGuid();
-                nutritionFacts.FoodId = food.Id;
-                nutritionFacts.CreatedAt = DateTime.UtcNow;
-                nutritionFacts.UpdatedAt = DateTime.UtcNow;
-    
-                dbContext.NutritionFacts.Add(nutritionFacts);
-            }
-            
-            if (foodDto.AllergenIds?.Any() == true)
-            {
-                var foodAllergens = foodDto.AllergenIds.Select(allergenId => new FoodAllergen
-                {
-                    Id = Guid.NewGuid(),
-                    FoodId = food.Id,
-                    AllergenId = allergenId,
-                    CreatedAt = DateTime.UtcNow
-                }).ToList();
-    
-                dbContext.FoodAllergens.AddRange(foodAllergens);
-            }
-            
-            var result = await dbContext.SaveChangesAsync();
-            if (result == 0)
-            {
-                return BadRequest(new { Message = "Cannot save food to database" });
-            }
-            
-            var createdFood = await dbContext.Foods
-                .Include(x => x.Category)
-                .Include(x => x.NutritionFacts)
-                .Include(x => x.FoodAllergens)
-                .ThenInclude(fa => fa.Allergen)
-                .FirstOrDefaultAsync(x => x.Id == food.Id);
-            
-            return CreatedAtAction(nameof(GetFoodById),
-                new { id = food.Id },
-                mapper.Map<FoodDetailsDto>(createdFood));
+
+            var createdFood = await foodService.CreateFoodAsync(foodDto);
+            return CreatedAtAction(nameof(GetFoodById), new { id = createdFood.Id }, ApiResponse<FoodDetailsDto>.SuccessResponse(createdFood, "Created Food Successfully"));
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            return StatusCode(500, new { Message = "There is some errors when creating food!" });
+            logger.LogError(ex, "Error while creating food");
+            return StatusCode(500, ApiResponse<FoodDetailsDto>.ErrorResponse("System Error"));
         }
     }
+
+    // /// <summary>
+    // /// Update specific food with ID
+    // /// </summary>
+    // [HttpPut("{id:guid}")]
+    // public async Task<ActionResult<ApiResponse<FoodDetailsDto>>> UpdateFood(Guid id, UpdateFoodDto foodDto)
+    // {
+    //     try
+    //     {
+    //         return Ok();
+    //     }
+    //     catch (Exception e)
+    //     {
+    //         logger.LogError(e, "Error while updating food");
+    //         return StatusCode(500, ApiResponse<FoodDetailsDto>.ErrorResponse("System Error"));
+    //     }
+    // }
 }

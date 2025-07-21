@@ -14,7 +14,7 @@ public class ApiResponse<T>
     public string RequestId { get; set; } = Guid.NewGuid().ToString();
 
     // Success response
-    public static ApiResponse<T> SuccessResponse(T data, string message = "Thành công")
+    public static ApiResponse<T> SuccessResponse(T data, string message = "Call API successfully.")
     {
         return new ApiResponse<T>
         {
@@ -31,12 +31,12 @@ public class ApiResponse<T>
         {
             Success = false,
             Message = message,
-            Errors = errors ?? new List<string>()
+            Errors = errors ?? []
         };
     }
 
     // Validation error response
-    public static ApiResponse<T> ValidationErrorResponse(Dictionary<string, List<string>> validationErrors)
+    public static ApiResponse<T> ValidationErrorResponse(Dictionary<string, List<string>?> validationErrors)
     {
         return new ApiResponse<T>
         {
@@ -52,7 +52,7 @@ public class ApiResponse<T>
 /// </summary>
 public class PaginatedResponse<T>
 {
-    public List<T> Data { get; set; } = new();
+    public List<T> Items { get; set; } = [];
     public int TotalCount { get; set; }
     public int PageNumber { get; set; }
     public int PageSize { get; set; }
@@ -63,11 +63,11 @@ public class PaginatedResponse<T>
     public int? NextPageNumber => HasNextPage ? PageNumber + 1 : null;
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 
-    public static PaginatedResponse<T> Create(List<T> data, int totalCount, int pageNumber, int pageSize)
+    public static PaginatedResponse<T> Create(List<T> items, int totalCount, int pageNumber, int pageSize)
     {
         return new PaginatedResponse<T>
         {
-            Data = data,
+            Items = items,
             TotalCount = totalCount,
             PageNumber = pageNumber,
             PageSize = pageSize

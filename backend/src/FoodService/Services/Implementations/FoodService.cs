@@ -12,33 +12,21 @@ namespace FoodService.Services.Implementations;
 /// Implementation of IFoodService
 /// Provides CRUD operations and business logic for Food entities
 /// </summary>
-public class FoodService : IFoodService
+public class FoodService(FoodDbContext context, IMapper mapper) : IFoodService
 {
-    private readonly FoodDbContext _context;
-    private readonly IMapper _mapper;
-
-    public FoodService(FoodDbContext context, IMapper mapper)
-    {
-        _context = context;
-        _mapper = mapper;
-    }
-
     /// <summary>
     /// Get food by ID with complete details
     /// </summary>
     public async Task<FoodDetailsDto?> GetFoodByIdAsync(Guid id)
     {
-        var food = await _context.Foods
+        var food = await context.Foods
             .Include(f => f.Category)
             .Include(f => f.NutritionFacts)
             .Include(f => f.FoodAllergens)
                 .ThenInclude(fa => fa.Allergen)
             .FirstOrDefaultAsync(f => f.Id == id && f.IsActive);
 
-        if (food == null)
-            return null;
-
-        return _mapper.Map<FoodDetailsDto>(food);
+        return food == null ? null : mapper.Map<FoodDetailsDto>(food);
     }
 
     /// <summary>
@@ -46,7 +34,7 @@ public class FoodService : IFoodService
     /// </summary>
     public async Task<PaginatedResponse<FoodListDto>> GetFoodsAsync(PaginationRequest request)
     {
-        var query = _context.Foods
+        var query = context.Foods
             .Include(f => f.Category)
             .Include(f => f.NutritionFacts)
             .Where(f => f.IsActive);
@@ -63,7 +51,7 @@ public class FoodService : IFoodService
             .Take(request.PageSize)
             .ToListAsync();
 
-        var foodDtos = _mapper.Map<List<FoodListDto>>(foods);
+        var foodDtos = mapper.Map<List<FoodListDto>>(foods);
 
         return PaginatedResponse<FoodListDto>.Create(
             foodDtos, 
@@ -78,7 +66,7 @@ public class FoodService : IFoodService
     /// </summary>
     public async Task<PaginatedResponse<FoodListDto>> SearchFoodsAsync(FoodSearchRequest request)
     {
-        var query = _context.Foods
+        var query = context.Foods
             .Include(f => f.Category)
             .Include(f => f.NutritionFacts)
             .AsQueryable();
@@ -151,7 +139,7 @@ public class FoodService : IFoodService
             .Take(request.PageSize)
             .ToListAsync();
 
-        var foodDtos = _mapper.Map<List<FoodListDto>>(foods);
+        var foodDtos = mapper.Map<List<FoodListDto>>(foods);
 
         return PaginatedResponse<FoodListDto>.Create(
             foodDtos, 
@@ -166,23 +154,23 @@ public class FoodService : IFoodService
     /// </summary>
     public async Task<FoodDetailsDto> CreateFoodAsync(CreateFoodDto dto)
     {
-        var food = _mapper.Map<Food>(dto);
+        var food = mapper.Map<Food>(dto);
         food.Id = Guid.NewGuid();
         food.CreatedAt = DateTime.UtcNow;
         food.UpdatedAt = DateTime.UtcNow;
 
-        _context.Foods.Add(food);
+        context.Foods.Add(food);
 
         // Add nutrition facts if provided
         if (dto.NutritionFacts != null)
         {
-            var nutritionFacts = _mapper.Map<NutritionFacts>(dto.NutritionFacts);
+            var nutritionFacts = mapper.Map<NutritionFacts>(dto.NutritionFacts);
             nutritionFacts.Id = Guid.NewGuid();
             nutritionFacts.FoodId = food.Id;
             nutritionFacts.CreatedAt = DateTime.UtcNow;
             nutritionFacts.UpdatedAt = DateTime.UtcNow;
 
-            _context.NutritionFacts.Add(nutritionFacts);
+            context.NutritionFacts.Add(nutritionFacts);
         }
 
         // Add allergen relationships
@@ -196,10 +184,10 @@ public class FoodService : IFoodService
                 CreatedAt = DateTime.UtcNow
             }).ToList();
 
-            _context.FoodAllergens.AddRange(foodAllergens);
+            context.FoodAllergens.AddRange(foodAllergens);
         }
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         // Return created food with all relationships
         return await GetFoodByIdAsync(food.Id) 
@@ -211,7 +199,7 @@ public class FoodService : IFoodService
     /// </summary>
     public async Task<FoodDetailsDto?> UpdateFoodAsync(Guid id, UpdateFoodDto dto)
     {
-        var food = await _context.Foods
+        var food = await context.Foods
             .Include(f => f.NutritionFacts)
             .FirstOrDefaultAsync(f => f.Id == id);
 
@@ -219,7 +207,7 @@ public class FoodService : IFoodService
             return null;
 
         // Update food properties
-        _mapper.Map(dto, food);
+        mapper.Map(dto, food);
         food.UpdatedAt = DateTime.UtcNow;
 
         // Update nutrition facts if provided
@@ -228,18 +216,18 @@ public class FoodService : IFoodService
             if (food.NutritionFacts == null)
             {
                 // Create new nutrition facts
-                var nutritionFacts = _mapper.Map<NutritionFacts>(dto.NutritionFacts);
+                var nutritionFacts = mapper.Map<NutritionFacts>(dto.NutritionFacts);
                 nutritionFacts.Id = Guid.NewGuid();
                 nutritionFacts.FoodId = food.Id;
                 nutritionFacts.CreatedAt = DateTime.UtcNow;
                 nutritionFacts.UpdatedAt = DateTime.UtcNow;
 
-                _context.NutritionFacts.Add(nutritionFacts);
+                context.NutritionFacts.Add(nutritionFacts);
             }
             else
             {
                 // Update existing nutrition facts
-                _mapper.Map(dto.NutritionFacts, food.NutritionFacts);
+                mapper.Map(dto.NutritionFacts, food.NutritionFacts);
                 food.NutritionFacts.UpdatedAt = DateTime.UtcNow;
             }
         }
@@ -248,11 +236,11 @@ public class FoodService : IFoodService
         if (dto.AllergenIds != null)
         {
             // Remove existing allergen relationships
-            var existingAllergens = await _context.FoodAllergens
+            var existingAllergens = await context.FoodAllergens
                 .Where(fa => fa.FoodId == id)
                 .ToListAsync();
 
-            _context.FoodAllergens.RemoveRange(existingAllergens);
+            context.FoodAllergens.RemoveRange(existingAllergens);
 
             // Add new allergen relationships
             if (dto.AllergenIds.Any())
@@ -265,11 +253,11 @@ public class FoodService : IFoodService
                     CreatedAt = DateTime.UtcNow
                 }).ToList();
 
-                _context.FoodAllergens.AddRange(foodAllergens);
+                context.FoodAllergens.AddRange(foodAllergens);
             }
         }
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         // Return updated food with all relationships
         return await GetFoodByIdAsync(id);
@@ -280,7 +268,7 @@ public class FoodService : IFoodService
     /// </summary>
     public async Task<bool> DeleteFoodAsync(Guid id)
     {
-        var food = await _context.Foods.FirstOrDefaultAsync(f => f.Id == id);
+        var food = await context.Foods.FirstOrDefaultAsync(f => f.Id == id);
 
         if (food == null)
             return false;
@@ -289,7 +277,7 @@ public class FoodService : IFoodService
         food.IsActive = false;
         food.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
         return true;
     }
 
@@ -298,7 +286,7 @@ public class FoodService : IFoodService
     /// </summary>
     public async Task<bool> VerifyFoodAsync(Guid id, Guid verifiedBy)
     {
-        var food = await _context.Foods.FirstOrDefaultAsync(f => f.Id == id);
+        var food = await context.Foods.FirstOrDefaultAsync(f => f.Id == id);
 
         if (food == null)
             return false;
@@ -309,7 +297,7 @@ public class FoodService : IFoodService
         food.VerifiedAt = DateTime.UtcNow;
         food.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
         return true;
     }
 
@@ -318,14 +306,14 @@ public class FoodService : IFoodService
     /// </summary>
     public async Task<List<FoodListDto>> GetFoodsByCategoryAsync(Guid categoryId)
     {
-        var foods = await _context.Foods
+        var foods = await context.Foods
             .Include(f => f.Category)
             .Include(f => f.NutritionFacts)
             .Where(f => f.CategoryId == categoryId && f.IsActive)
             .OrderBy(f => f.Name)
             .ToListAsync();
 
-        return _mapper.Map<List<FoodListDto>>(foods);
+        return mapper.Map<List<FoodListDto>>(foods);
     }
 
     /// <summary>
@@ -333,14 +321,14 @@ public class FoodService : IFoodService
     /// </summary>
     public async Task<List<FoodListDto>> GetFoodsByAllergenAsync(Guid allergenId)
     {
-        var foods = await _context.Foods
+        var foods = await context.Foods
             .Include(f => f.Category)
             .Include(f => f.NutritionFacts)
             .Where(f => f.FoodAllergens.Any(fa => fa.AllergenId == allergenId) && f.IsActive)
             .OrderBy(f => f.Name)
             .ToListAsync();
 
-        return _mapper.Map<List<FoodListDto>>(foods);
+        return mapper.Map<List<FoodListDto>>(foods);
     }
 
     /// <summary>
