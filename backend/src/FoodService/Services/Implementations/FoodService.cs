@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using FoodService.Data;
@@ -158,6 +159,19 @@ public class FoodService(FoodDbContext context, IMapper mapper) : IFoodService
         food.Id = Guid.NewGuid();
         food.CreatedAt = DateTime.UtcNow;
         food.UpdatedAt = DateTime.UtcNow;
+        
+        // Check barcode is unique or null
+        if (!string.IsNullOrWhiteSpace(dto.Barcode))
+        {
+            var exists = await context.Foods
+                .AnyAsync(f => f.Barcode == dto.Barcode);
+            if (exists)
+                throw new ValidationException("Barcode already exists");
+        }
+        else
+        {
+            dto.Barcode = null;
+        }
 
         context.Foods.Add(food);
 
@@ -208,6 +222,18 @@ public class FoodService(FoodDbContext context, IMapper mapper) : IFoodService
 
         // Update food properties
         mapper.Map(dto, food);
+        // Check barcode is unique or null
+        if (!string.IsNullOrWhiteSpace(dto.Barcode))
+        {
+            var exists = await context.Foods
+                .AnyAsync(f => f.Barcode == dto.Barcode);
+            if (exists)
+                throw new ValidationException("Barcode already exists");
+        }
+        else
+        {
+            dto.Barcode = null;
+        }
         food.UpdatedAt = DateTime.UtcNow;
 
         // Update nutrition facts if provided

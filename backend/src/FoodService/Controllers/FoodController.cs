@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using FoodService.DTOs.Common;
 using FoodService.DTOs.Food;
 using FoodService.Services.Interfaces;
@@ -87,6 +88,11 @@ public class FoodController(IFoodService foodService, ILogger<FoodController> lo
             var createdFood = await foodService.CreateFoodAsync(foodDto);
             return CreatedAtAction(nameof(GetFoodById), new { id = createdFood.Id }, ApiResponse<FoodDetailsDto>.SuccessResponse(createdFood, "Created Food Successfully"));
         }
+        catch (ValidationException ex)
+        {
+            logger.LogError(ex, "Error while creating food");
+            return BadRequest(ApiResponse<FoodDetailsDto>.ErrorResponse(ex.Message));
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error while creating food");
@@ -94,20 +100,41 @@ public class FoodController(IFoodService foodService, ILogger<FoodController> lo
         }
     }
 
-    // /// <summary>
-    // /// Update specific food with ID
-    // /// </summary>
-    // [HttpPut("{id:guid}")]
-    // public async Task<ActionResult<ApiResponse<FoodDetailsDto>>> UpdateFood(Guid id, UpdateFoodDto foodDto)
-    // {
-    //     try
-    //     {
-    //         return Ok();
-    //     }
-    //     catch (Exception e)
-    //     {
-    //         logger.LogError(e, "Error while updating food");
-    //         return StatusCode(500, ApiResponse<FoodDetailsDto>.ErrorResponse("System Error"));
-    //     }
-    // }
+    /// <summary>
+    /// Update specific food with ID
+    /// </summary>
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<FoodDetailsDto>>> UpdateFood(Guid id, UpdateFoodDto foodDto)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState
+                    .Where(x => x.Value is { Errors.Count: > 0 })
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value?.Errors.Select(e => e.ErrorMessage).ToList()
+                    );
+                return BadRequest(ApiResponse<FoodDetailsDto>.ValidationErrorResponse(errors));
+            }
+
+            var updatedFood = await foodService.UpdateFoodAsync(id, foodDto);
+            
+            return Ok(ApiResponse<FoodDetailsDto>.SuccessResponse(updatedFood!, "Updated Food with Successfully"));
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(ApiResponse<FoodDetailsDto>.ErrorResponse("Not found food"));
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(ApiResponse<FoodDetailsDto>.ErrorResponse(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error while updating food");
+            return StatusCode(500, ApiResponse<FoodDetailsDto>.ErrorResponse("System Error"));
+        }
+    }
 }
