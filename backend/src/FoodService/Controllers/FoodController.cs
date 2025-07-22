@@ -137,4 +137,26 @@ public class FoodController(IFoodService foodService, ILogger<FoodController> lo
             return StatusCode(500, ApiResponse<FoodDetailsDto>.ErrorResponse("System Error"));
         }
     }
+
+    /// <summary>
+    /// Delete existing food
+    /// </summary>
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult> DeleteFood(Guid id)
+    {
+        try
+        {
+            var food = await foodService.GetFoodByIdAsync(id);
+            if (food == null)
+                return NotFound(ApiResponse<FoodDetailsDto>.ErrorResponse("Food not found"));
+            
+            await foodService.DeleteFoodAsync(id);
+            return Ok(ApiResponse<FoodDetailsDto>.DeleteResponse("Deleted Food"));
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Error while deleting food");
+            return StatusCode(500, ApiResponse<FoodDetailsDto>.ErrorResponse("System Error"));
+        }
+    }
 }

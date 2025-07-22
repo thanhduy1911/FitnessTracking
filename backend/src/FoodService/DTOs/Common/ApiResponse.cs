@@ -45,6 +45,16 @@ public class ApiResponse<T>
             ValidationErrors = validationErrors
         };
     }
+    
+    // Delete response
+    public static ApiResponse<T> DeleteResponse(string message)
+    {
+        return new ApiResponse<T>
+        {
+            Success = true,
+            Message = message,
+        };
+    }
 }
 
 /// <summary>
