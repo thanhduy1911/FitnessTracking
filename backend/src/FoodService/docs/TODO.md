@@ -595,3 +595,10 @@ CreateMap<UpdateNutritionFactsDto, NutritionFacts>()
 - [x] Test API thực tế với ColorHex
 - [x] Hướng dẫn migration thêm cột color_hex
 - [x] Giải thích business value của ColorHex 
+
+## [2025-07-22] - ServingSizes & FoodDetailsDto Integration
+- Đã tích hợp property ServingSizes vào FoodDetailsDto, trả về danh sách khẩu phần khả dụng cho từng món ăn
+- Đã test thực tế: tạo food, update food, kiểm tra servingSizes, dinh dưỡng từng khẩu phần, allergen, category
+- Response trả về chuẩn hóa, phù hợp cho mobile/web app
+- Đã validate dữ liệu, kiểm tra các trường hợp đặc biệt (barcode null, allergen rỗng, category inactive...)
+- Sẵn sàng commit và lưu stage 

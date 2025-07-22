@@ -5,6 +5,7 @@ using FoodService.Data;
 using FoodService.Entities;
 using FoodService.DTOs.Food;
 using FoodService.DTOs.Common;
+using FoodService.DTOs.Nutrition;
 using FoodService.Services.Interfaces;
 
 namespace FoodService.Services.Implementations;
@@ -13,7 +14,7 @@ namespace FoodService.Services.Implementations;
 /// Implementation of IFoodService
 /// Provides CRUD operations and business logic for Food entities
 /// </summary>
-public class FoodService(FoodDbContext context, IMapper mapper) : IFoodService
+public class FoodService(FoodDbContext context, IMapper mapper, ServingSizeService servingSizeService) : IFoodService
 {
     /// <summary>
     /// Get food by ID with complete details
@@ -26,8 +27,22 @@ public class FoodService(FoodDbContext context, IMapper mapper) : IFoodService
             .Include(f => f.FoodAllergens)
                 .ThenInclude(fa => fa.Allergen)
             .FirstOrDefaultAsync(f => f.Id == id && f.IsActive);
+        if (food == null) return null;
 
-        return food == null ? null : mapper.Map<FoodDetailsDto>(food);
+        var dto = mapper.Map<FoodDetailsDto>(food);
+        
+        // Get serving size available
+        var servingSizes = servingSizeService.GetAvailableServingSizes(food);
+        // Mapping
+        dto.ServingSizes = servingSizes.Select(s => new ServingSizeCalculationDto
+        {
+            ServingGrams = s.ServingGrams,
+            ServingDescription = s.ServingDescription,
+            MultiplierFrom100G = s.MultiplierFrom100g,
+            NutritionPerServing = mapper.Map<NutritionFactsDto>(s.NutritionPerServing)
+        }).ToList();
+        
+        return dto;
     }
 
     /// <summary>
