@@ -602,3 +602,14 @@ CreateMap<UpdateNutritionFactsDto, NutritionFacts>()
 - Response trả về chuẩn hóa, phù hợp cho mobile/web app
 - Đã validate dữ liệu, kiểm tra các trường hợp đặc biệt (barcode null, allergen rỗng, category inactive...)
 - Sẵn sàng commit và lưu stage 
+
+## [2025-07-22] - NutritionController Planning
+- NutritionController cần có cả các API động (tính toán dinh dưỡng cho khẩu phần, so sánh nhiều món, tính % daily value, tính dinh dưỡng cho recipe, lấy khẩu phần thay thế, tính density score) bên cạnh CRUD.
+- CRUD chỉ phục vụ quản trị dữ liệu (admin), còn các API động là giá trị cốt lõi cho user/app.
+- Bước tiếp theo: Bắt đầu làm CRUD cho NutritionFacts (admin) và test thực tế. 
+
+## [2025-07-23] - Hoàn thành testing NutritionController
+- Đã test thành công toàn bộ endpoint động: tính dinh dưỡng cho khẩu phần, daily value, so sánh nhiều món, recipe, density score, alternative serving sizes.
+- Đã fix lỗi cộng tổng dinh dưỡng trả về null, validate dữ liệu, kiểm tra mapping, test thực tế với nhiều loại thực phẩm và công thức.
+- Response chuẩn hóa, phù hợp mobile/web app.
+- Sẵn sàng chuyển sang bước tiếp theo. 

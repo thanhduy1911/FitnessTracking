@@ -14,6 +14,7 @@ VietFit FoodService là core service cho việc quản lý thông tin thực ph�
 - ✅ **Critical Issues**: Field inconsistencies RESOLVED
 - ✅ **Service Layer**: Complete business logic implementation
 - ✅ **Controllers**: CRUD FoodsController đã hoàn thành (GET, POST, PUT, DELETE, SEARCH, verify, get by barcode, trả về servingSizes)
+- ✅ **Controllers**: Đã hoàn thành toàn bộ tính năng động cho NutritionController (tính dinh dưỡng, daily value, so sánh, recipe, density score, alternative serving sizes)
 
 ---
 
@@ -491,3 +492,5 @@ VietFit FoodService is a well-architected, Vietnamese-focused nutrition service 
 - Kiểm tra barcode
 - Tích hợp ServingSizes vào FoodDetailsDto, trả về danh sách khẩu phần và dinh dưỡng từng khẩu phần
 - Chuẩn hóa response cho mobile/web app
+- Đã hoàn thành toàn bộ tính năng động cho NutritionController (tính dinh dưỡng, daily value, so sánh, recipe, density score, alternative serving sizes)
+- Đã fix lỗi cộng tổng dinh dưỡng trả về null, test thực tế với nhiều loại thực phẩm và công thức
