@@ -19,7 +19,7 @@ public class CategoryService(FoodDbContext dbContext, IMapper mapper) : ICategor
             .Skip(request.Skip)
             .Take(request.PageSize)
             .ToListAsync();
-        var dtos = items.Select(c => mapper.Map<CategoryListDto>(c)).ToList();
+        var dtos = items.Select(mapper.Map<CategoryListDto>).ToList();
         return PaginatedResponse<CategoryListDto>.Create(dtos, total, request.Page, request.PageSize);
     }
 
@@ -60,5 +60,23 @@ public class CategoryService(FoodDbContext dbContext, IMapper mapper) : ICategor
         dbContext.FoodCategories.Remove(entity);
         await dbContext.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<List<CategoryDto>> GetCategoryHierarchyAsync()
+    {
+        var allCategories = await dbContext.FoodCategories
+            .Include(c => c.Children)
+            .ToListAsync();
+        var categoryDict = allCategories.ToDictionary(c => c.Id, mapper.Map<CategoryDto>);
+        // Build tree
+        foreach (var cat in categoryDict.Values)
+        {
+            if (cat.ParentId != null && categoryDict.TryGetValue(cat.ParentId.Value, out var value))
+            {
+                value.Children.Add(cat);
+            }
+        }
+        // Trả về các root node (ParentId == null)
+        return categoryDict.Values.Where(c => c.ParentId == null).OrderBy(c => c.SortOrder).ToList();
     }
 } 

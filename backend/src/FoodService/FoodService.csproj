@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Services\Implementations\" />
     <Folder Include="Tests\Controllers\" />
   </ItemGroup>
 

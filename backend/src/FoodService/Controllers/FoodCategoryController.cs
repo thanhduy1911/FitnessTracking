@@ -126,4 +126,22 @@ public class FoodCategoryController(ICategoryService categoryService, ILogger<Fo
             return StatusCode(500, ApiResponse<object>.ErrorResponse("System Error"));
         }
     }
+
+    /// <summary>
+    /// Get category hierarchy (tree)
+    /// </summary>
+    [HttpGet("hierarchy")]
+    public async Task<ActionResult<ApiResponse<List<CategoryDto>>>> GetCategoryHierarchy()
+    {
+        try
+        {
+            var result = await categoryService.GetCategoryHierarchyAsync();
+            return Ok(ApiResponse<List<CategoryDto>>.SuccessResponse(result));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error while getting category hierarchy");
+            return StatusCode(500, ApiResponse<List<CategoryDto>>.ErrorResponse("System Error"));
+        }
+    }
 }

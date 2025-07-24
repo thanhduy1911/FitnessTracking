@@ -588,7 +588,7 @@ CreateMap<UpdateNutritionFactsDto, NutritionFacts>()
 **Next Review**: 2025-01-25
 **Assigned Team**: VietFit Development Team 
 
-## [2025-07-21] - Category API & ColorHex
+## [2025-07-18] - Category API & ColorHex
 - [x] Thêm property ColorHex vào entity FoodCategory
 - [x] Sửa mapping profile cho ColorHex
 - [x] Viết CRUD controller cho category (GET/POST/PUT/DELETE)
@@ -596,7 +596,7 @@ CreateMap<UpdateNutritionFactsDto, NutritionFacts>()
 - [x] Hướng dẫn migration thêm cột color_hex
 - [x] Giải thích business value của ColorHex 
 
-## [2025-07-22] - ServingSizes & FoodDetailsDto Integration
+## [2025-07-21] - ServingSizes & FoodDetailsDto Integration
 - Đã tích hợp property ServingSizes vào FoodDetailsDto, trả về danh sách khẩu phần khả dụng cho từng món ăn
 - Đã test thực tế: tạo food, update food, kiểm tra servingSizes, dinh dưỡng từng khẩu phần, allergen, category
 - Response trả về chuẩn hóa, phù hợp cho mobile/web app
@@ -613,3 +613,7 @@ CreateMap<UpdateNutritionFactsDto, NutritionFacts>()
 - Đã fix lỗi cộng tổng dinh dưỡng trả về null, validate dữ liệu, kiểm tra mapping, test thực tế với nhiều loại thực phẩm và công thức.
 - Response chuẩn hóa, phù hợp mobile/web app.
 - Sẵn sàng chuyển sang bước tiếp theo. 
+
+## [2025-07-23] - Hoàn thành Category Hierarchy
+- Đã hoàn thành Category Hierarchy (service + controller), trả về cây phân cấp category, test thực tế thành công.
+- Next step: Hoàn thiện CRUD cho AllergensController, bổ sung integration test, hoàn thiện tài liệu Swagger/OpenAPI. 
