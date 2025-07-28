@@ -26,6 +26,7 @@ builder.Services.AddScoped<IFoodService, FoodService.Services.Implementations.Fo
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<INutritionCalculationService, NutritionCalculationService>();
 builder.Services.AddScoped<INutritionFactsService, NutritionFactsService>();
+builder.Services.AddScoped<IAllergenService, AllergenService>();
 
 // Add API documentation
 builder.Services.AddEndpointsApiExplorer();

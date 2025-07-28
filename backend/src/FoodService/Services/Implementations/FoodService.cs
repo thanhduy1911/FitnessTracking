@@ -375,7 +375,7 @@ public class FoodService(FoodDbContext context, IMapper mapper, ServingSizeServi
     /// <summary>
     /// Apply sorting to query
     /// </summary>
-    private IQueryable<Food> ApplySorting(IQueryable<Food> query, string? sortBy, string sortDirection)
+    private static IQueryable<Food> ApplySorting(IQueryable<Food> query, string? sortBy, string sortDirection)
     {
         if (string.IsNullOrWhiteSpace(sortBy))
         {
