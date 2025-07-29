@@ -1,5 +1,6 @@
 using FoodService.DTOs.Category;
 using FoodService.DTOs.Allergen;
+using FoodService.DTOs.Common;
 using FoodService.DTOs.Nutrition;
 
 namespace FoodService.DTOs.Food;
@@ -30,6 +31,7 @@ public class FoodDetailsDto
     public decimal? ServingSizeGrams { get; set; }
     public string ServingSizeDescription { get; set; } = string.Empty;
     public string ServingSizeDescriptionEn { get; set; } = string.Empty;
+    public List<ServingSizeCalculationDto> ServingSizes { get; set; } = new();
     public List<AlternativeServingDto> AlternativeServingSizes { get; set; } = new();
     
     // Nutrition information

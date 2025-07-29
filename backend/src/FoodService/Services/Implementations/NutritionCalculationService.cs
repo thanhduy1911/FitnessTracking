@@ -11,15 +11,8 @@ namespace FoodService.Services.Implementations;
 /// Implementation of INutritionCalculationService
 /// Provides nutrition calculations, serving size calculations, and nutrition analysis
 /// </summary>
-public class NutritionCalculationService : INutritionCalculationService
+public class NutritionCalculationService(FoodDbContext context) : INutritionCalculationService
 {
-    private readonly FoodDbContext _context;
-
-    public NutritionCalculationService(FoodDbContext context)
-    {
-        _context = context;
-    }
-
     /// <summary>
     /// Daily value reference values (based on 2000 calorie diet)
     /// </summary>
@@ -68,7 +61,7 @@ public class NutritionCalculationService : INutritionCalculationService
     /// </summary>
     public async Task<ServingNutritionResponse?> CalculateNutritionForServingAsync(Guid foodId, decimal servingGrams)
     {
-        var food = await _context.Foods
+        var food = await context.Foods
             .Include(f => f.NutritionFacts)
             .FirstOrDefaultAsync(f => f.Id == foodId && f.IsActive);
 
@@ -149,7 +142,7 @@ public class NutritionCalculationService : INutritionCalculationService
     /// </summary>
     public async Task<ServingNutritionResponse?> GetRecommendedServingSizeAsync(Guid foodId, string userProfile)
     {
-        var food = await _context.Foods
+        var food = await context.Foods
             .Include(f => f.NutritionFacts)
             .Include(f => f.Category)
             .FirstOrDefaultAsync(f => f.Id == foodId && f.IsActive);
@@ -169,7 +162,32 @@ public class NutritionCalculationService : INutritionCalculationService
         var totalNutrition = new ServingNutritionResponse
         {
             FoodName = "Recipe Total",
-            ServingDescription = "Toàn bộ công thức"
+            ServingDescription = "Toàn bộ công thức",
+            CaloriesKcal = 0,
+            ProteinG = 0,
+            CarbsG = 0,
+            FatG = 0,
+            FiberG = 0,
+            SugarG = 0,
+            SodiumMg = 0,
+            CalciumMg = 0,
+            IronMg = 0,
+            VitaminCMg = 0,
+            VitaminAMcg = 0,
+            SaturatedFatG = 0,
+            CholesterolMg = 0,
+            PotassiumMg = 0,
+            MagnesiumMg = 0,
+            ZincMg = 0,
+            VitaminB6Mg = 0,
+            VitaminB12Mcg = 0,
+            FolateMcg = 0,
+            BiotinMcg = 0,
+            CholineMg = 0,
+            CopperMg = 0,
+            ManganeseMg = 0,
+            SeleniumMcg = 0,
+            PantothenicAcidMg = 0
         };
 
         decimal totalWeight = 0;
@@ -224,7 +242,7 @@ public class NutritionCalculationService : INutritionCalculationService
 
         foreach (var foodId in foodIds)
         {
-            var food = await _context.Foods
+            var food = await context.Foods
                 .Include(f => f.NutritionFacts)
                 .FirstOrDefaultAsync(f => f.Id == foodId && f.IsActive);
 
@@ -334,7 +352,7 @@ public class NutritionCalculationService : INutritionCalculationService
     /// </summary>
     public async Task<List<ServingNutritionResponse>> GetAlternativeServingSizesAsync(Guid foodId)
     {
-        var food = await _context.Foods
+        var food = await context.Foods
             .Include(f => f.NutritionFacts)
             .FirstOrDefaultAsync(f => f.Id == foodId && f.IsActive);
 
@@ -344,11 +362,11 @@ public class NutritionCalculationService : INutritionCalculationService
         var servingSizes = new List<ServingNutritionResponse>();
 
         // Always include 100g
-        var base100g = await CalculateNutritionForServingAsync(foodId, 100m);
-        if (base100g != null)
+        var base100G = await CalculateNutritionForServingAsync(foodId, 100m);
+        if (base100G != null)
         {
-            base100g.ServingDescription = "100g";
-            servingSizes.Add(base100g);
+            base100G.ServingDescription = "100g";
+            servingSizes.Add(base100G);
         }
 
         // Add default serving size
@@ -363,28 +381,26 @@ public class NutritionCalculationService : INutritionCalculationService
         }
 
         // Add alternative serving sizes from JSON
-        if (!string.IsNullOrEmpty(food.AlternativeServingSizes))
+        if (string.IsNullOrEmpty(food.AlternativeServingSizes)) return servingSizes;
+        try
         {
-            try
+            var alternativeServings = JsonSerializer.Deserialize<List<AlternativeServingDto>>(food.AlternativeServingSizes);
+            if (alternativeServings != null)
             {
-                var alternativeServings = JsonSerializer.Deserialize<List<AlternativeServingDto>>(food.AlternativeServingSizes);
-                if (alternativeServings != null)
+                foreach (var alt in alternativeServings)
                 {
-                    foreach (var alt in alternativeServings)
+                    var altNutrition = await CalculateNutritionForServingAsync(foodId, alt.Grams);
+                    if (altNutrition != null)
                     {
-                        var altNutrition = await CalculateNutritionForServingAsync(foodId, alt.Grams);
-                        if (altNutrition != null)
-                        {
-                            altNutrition.ServingDescription = alt.Description;
-                            servingSizes.Add(altNutrition);
-                        }
+                        altNutrition.ServingDescription = alt.Description;
+                        servingSizes.Add(altNutrition);
                     }
                 }
             }
-            catch (JsonException)
-            {
-                // Handle JSON parsing errors gracefully
-            }
+        }
+        catch (JsonException)
+        {
+            // Handle JSON parsing errors gracefully
         }
 
         return servingSizes;
@@ -489,7 +505,7 @@ public class NutritionCalculationService : INutritionCalculationService
 
     private ComparisonSummary GenerateComparisonSummary(List<FoodComparisonItem> foods)
     {
-        if (!foods.Any())
+        if (foods.Count == 0)
             return new ComparisonSummary();
 
         var summary = new ComparisonSummary();
@@ -519,33 +535,31 @@ public class NutritionCalculationService : INutritionCalculationService
     {
         var insights = new List<string>();
 
-        if (foods.Count >= 2)
+        if (foods.Count < 2) return insights;
+        var avgCalories = foods.Average(f => f.CaloriesKcal ?? 0);
+        var highCalorieFoods = foods.Where(f => (f.CaloriesKcal ?? 0) > avgCalories * 1.5m).ToList();
+        var lowCalorieFoods = foods.Where(f => (f.CaloriesKcal ?? 0) < avgCalories * 0.5m).ToList();
+
+        if (highCalorieFoods.Count != 0)
         {
-            var avgCalories = foods.Average(f => f.CaloriesKcal ?? 0);
-            var highCalorieFoods = foods.Where(f => (f.CaloriesKcal ?? 0) > avgCalories * 1.5m).ToList();
-            var lowCalorieFoods = foods.Where(f => (f.CaloriesKcal ?? 0) < avgCalories * 0.5m).ToList();
+            insights.Add($"Thực phẩm có calories cao nhất: {string.Join(", ", highCalorieFoods.Select(f => f.FoodNameVi))}");
+        }
 
-            if (highCalorieFoods.Any())
-            {
-                insights.Add($"Thực phẩm có calories cao nhất: {string.Join(", ", highCalorieFoods.Select(f => f.FoodNameVi))}");
-            }
+        if (lowCalorieFoods.Count != 0)
+        {
+            insights.Add($"Thực phẩm có calories thấp nhất: {string.Join(", ", lowCalorieFoods.Select(f => f.FoodNameVi))}");
+        }
 
-            if (lowCalorieFoods.Any())
-            {
-                insights.Add($"Thực phẩm có calories thấp nhất: {string.Join(", ", lowCalorieFoods.Select(f => f.FoodNameVi))}");
-            }
-
-            var highProteinFoods = foods.Where(f => (f.ProteinG ?? 0) > 10).ToList();
-            if (highProteinFoods.Any())
-            {
-                insights.Add($"Nguồn protein tốt: {string.Join(", ", highProteinFoods.Select(f => f.FoodNameVi))}");
-            }
+        var highProteinFoods = foods.Where(f => (f.ProteinG ?? 0) > 10).ToList();
+        if (highProteinFoods.Count != 0)
+        {
+            insights.Add($"Nguồn protein tốt: {string.Join(", ", highProteinFoods.Select(f => f.FoodNameVi))}");
         }
 
         return insights;
     }
 
-    // Helper class for JSON deserization
+    // Helper class for JSON deserialization
     private class AlternativeServingDto
     {
         public decimal Grams { get; set; }

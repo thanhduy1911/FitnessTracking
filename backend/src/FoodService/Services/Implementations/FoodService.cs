@@ -1,9 +1,11 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using FoodService.Data;
 using FoodService.Entities;
 using FoodService.DTOs.Food;
 using FoodService.DTOs.Common;
+using FoodService.DTOs.Nutrition;
 using FoodService.Services.Interfaces;
 
 namespace FoodService.Services.Implementations;
@@ -12,7 +14,7 @@ namespace FoodService.Services.Implementations;
 /// Implementation of IFoodService
 /// Provides CRUD operations and business logic for Food entities
 /// </summary>
-public class FoodService(FoodDbContext context, IMapper mapper) : IFoodService
+public class FoodService(FoodDbContext context, IMapper mapper, ServingSizeService servingSizeService) : IFoodService
 {
     /// <summary>
     /// Get food by ID with complete details
@@ -25,8 +27,22 @@ public class FoodService(FoodDbContext context, IMapper mapper) : IFoodService
             .Include(f => f.FoodAllergens)
                 .ThenInclude(fa => fa.Allergen)
             .FirstOrDefaultAsync(f => f.Id == id && f.IsActive);
+        if (food == null) return null;
 
-        return food == null ? null : mapper.Map<FoodDetailsDto>(food);
+        var dto = mapper.Map<FoodDetailsDto>(food);
+        
+        // Get serving size available
+        var servingSizes = servingSizeService.GetAvailableServingSizes(food);
+        // Mapping
+        dto.ServingSizes = servingSizes.Select(s => new ServingSizeCalculationDto
+        {
+            ServingGrams = s.ServingGrams,
+            ServingDescription = s.ServingDescription,
+            MultiplierFrom100G = s.MultiplierFrom100g,
+            NutritionPerServing = mapper.Map<NutritionFactsDto>(s.NutritionPerServing)
+        }).ToList();
+        
+        return dto;
     }
 
     /// <summary>
@@ -158,6 +174,19 @@ public class FoodService(FoodDbContext context, IMapper mapper) : IFoodService
         food.Id = Guid.NewGuid();
         food.CreatedAt = DateTime.UtcNow;
         food.UpdatedAt = DateTime.UtcNow;
+        
+        // Check barcode is unique or null
+        if (!string.IsNullOrWhiteSpace(dto.Barcode))
+        {
+            var exists = await context.Foods
+                .AnyAsync(f => f.Barcode == dto.Barcode);
+            if (exists)
+                throw new ValidationException("Barcode already exists");
+        }
+        else
+        {
+            dto.Barcode = null;
+        }
 
         context.Foods.Add(food);
 
@@ -208,6 +237,18 @@ public class FoodService(FoodDbContext context, IMapper mapper) : IFoodService
 
         // Update food properties
         mapper.Map(dto, food);
+        // Check barcode is unique or null
+        if (!string.IsNullOrWhiteSpace(dto.Barcode))
+        {
+            var exists = await context.Foods
+                .AnyAsync(f => f.Barcode == dto.Barcode);
+            if (exists)
+                throw new ValidationException("Barcode already exists");
+        }
+        else
+        {
+            dto.Barcode = null;
+        }
         food.UpdatedAt = DateTime.UtcNow;
 
         // Update nutrition facts if provided
@@ -334,7 +375,7 @@ public class FoodService(FoodDbContext context, IMapper mapper) : IFoodService
     /// <summary>
     /// Apply sorting to query
     /// </summary>
-    private IQueryable<Food> ApplySorting(IQueryable<Food> query, string? sortBy, string sortDirection)
+    private static IQueryable<Food> ApplySorting(IQueryable<Food> query, string? sortBy, string sortDirection)
     {
         if (string.IsNullOrWhiteSpace(sortBy))
         {

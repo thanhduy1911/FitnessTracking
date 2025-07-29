@@ -24,7 +24,7 @@ public class CreateFoodDto
     public string? FoodCode { get; set; }
     
     [StringLength(50, ErrorMessage = "Barcode không được vượt quá 50 ký tự")]
-    public string Barcode { get; set; } = string.Empty;
+    public string? Barcode { get; set; }
     
     public Guid? CategoryId { get; set; }
     

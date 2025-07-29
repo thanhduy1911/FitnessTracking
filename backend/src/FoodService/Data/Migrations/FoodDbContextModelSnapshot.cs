@@ -30,6 +30,16 @@ namespace FoodService.Data.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<string>("Category")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("category");
+
+                    b.Property<string>("ColorHex")
+                        .HasMaxLength(7)
+                        .HasColumnType("character varying(7)")
+                        .HasColumnName("color_hex");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -38,9 +48,17 @@ namespace FoodService.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("description");
 
+                    b.Property<string>("IconUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("icon_url");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("is_active");
+
+                    b.Property<bool>("IsCommonInVietnameseFood")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_common_in_vietnamese_food");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -57,6 +75,16 @@ namespace FoodService.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("name_vi");
+
+                    b.Property<string>("SeverityLevel")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("severity_level");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id");
 
